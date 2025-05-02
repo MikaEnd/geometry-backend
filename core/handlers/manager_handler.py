@@ -1,6 +1,7 @@
 from core.handlers.base_handler import BaseHandler
 from core.llm.llm_client import ask_gpt
 from core.skills.execute_with_llm import ExecuteWithLLMSkill
+from core.skills.multi_step_task import MultiStepTaskSkill
 from core.handlers.routing import get_handler_by_competence
 
 
@@ -18,9 +19,23 @@ class ManagerHandler(BaseHandler):
                 return await handler.handle(user_id, f"{task['original_task']}. Уточнение: {message}")
             else:
                 return f"Задача понята, но подходящей компетенции пока нет: {competence}"
-        
-        competence = await ask_gpt(f"На основе запроса определи компетенцию: {message}\nОтветь одним словом: разработчик, исследователь, менеджер или неизвестно.")
-        
+
+        # Проверка сложности задачи
+        is_complex = await ask_gpt(
+            f"Требует ли задача многошагового выполнения или декомпозиции?\n"
+            f"Задача: {message}\n"
+            f"Ответь только: да или нет."
+        )
+
+        if "да" in is_complex.lower():
+            return await MultiStepTaskSkill().execute(user_id, message)
+
+        # Иначе — обычная маршрутизация
+        competence = await ask_gpt(
+            f"На основе запроса определи компетенцию: {message}\n"
+            f"Ответь одним словом: разработчик, исследователь, менеджер или неизвестно."
+        )
+
         if "неизвестно" in competence.lower():
             clarification = await ask_gpt(f"Пользователь задал: '{message}'. Какие 1–2 вопроса нужно уточнить, чтобы выбрать исполнителя?")
             self.pending_tasks[user_id] = {
@@ -28,7 +43,7 @@ class ManagerHandler(BaseHandler):
                 "clarification": clarification
             }
             return f"Чтобы понять задачу, уточни, пожалуйста:\n{clarification}"
-        
+
         handler = get_handler_by_competence(competence)
         if handler:
             return await handler.handle(user_id, message)
