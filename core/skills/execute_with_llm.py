@@ -7,10 +7,12 @@ import termios
 import fcntl
 from core.skills.base_skill import BaseSkill
 from core.services.command_executor import CommandExecutorService
+from bots.developer import DeveloperHandler  # ⬅️ добавим вызов DeveloperHandler прямо здесь
 
 class ExecuteWithLLMSkill(BaseSkill):
     def __init__(self):
         self.executor = CommandExecutorService()
+        self.recovery_handler = DeveloperHandler()
 
     def can_handle(self, message: str) -> bool:
         return any(x in message.lower() for x in [
@@ -47,8 +49,16 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
         results = []
         for cmd in commands:
             exec_result = self.executor.execute(cmd)
+            output = exec_result["output"]
             status = "✅" if exec_result["status"] == "success" else "❌"
-            results.append(f"{status} {cmd}\n{exec_result['output']}")
+            results.append(f"{status} {cmd}\n{output}")
+
+            if "command not found" in output:
+                missing_command = cmd.split()[0]
+                print(f"\n⚠️ Команда не найдена: {missing_command}")
+                install_prompt = f"Установи утилиту {missing_command} в системе Ubuntu"
+                install_result = await self.recovery_handler.handle(install_prompt, user_id)
+                results.append(f"🔄 Установка {missing_command}: {install_result}")
 
         return f"📋 Задача: {message}\n" + "\n".join(results)
 
@@ -60,13 +70,11 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
+            "Authorization": f"Bearer {api_key}"}
         payload = {
             "model": "deepseek-chat",
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.2
-        }
+            "temperature": 0.2}
         try:
             res = requests.post(api_url, headers=headers, json=payload, timeout=20)
             res.raise_for_status()
@@ -81,7 +89,6 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
         old_flags = fcntl.fcntl(fd, fcntl.F_GETFL)
         tty.setcbreak(fd)
         fcntl.fcntl(fd, fcntl.F_SETFL, old_flags | os.O_NONBLOCK)
-
         countdown = 9
         paused = False
         try:
@@ -90,13 +97,12 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
                     print(f"\r⌛ {countdown} ", end='', flush=True)
                     time.sleep(1)
                     countdown -= 1
-
                 try:
                     key = os.read(fd, 1).decode()
-                    if key == "\x1b":  # Esc
+                    if key == "\x1b":
                         print("\n🚫 Выполнение отменено пользователем.")
                         return False
-                    elif key == "\n":  # Enter
+                    elif key == "\n":
                         print("\n✅ Выполнение подтверждено.")
                         return True
                     elif key == " ":
@@ -105,10 +111,8 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
                         print(f"\n{state}")
                 except BlockingIOError:
                     continue
-
             print("\n⏳ Время истекло. Выполняем команды.")
             return True
-
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
             fcntl.fcntl(fd, fcntl.F_SETFL, old_flags)
