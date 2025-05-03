@@ -7,12 +7,11 @@ import termios
 import fcntl
 from core.skills.base_skill import BaseSkill
 from core.services.command_executor import CommandExecutorService
-from bots.developer import DeveloperHandler  # ⬅️ добавим вызов DeveloperHandler прямо здесь
+from core.mediator.agent_mediator import delegate_task  # ✅ делегируем через менеджера
 
 class ExecuteWithLLMSkill(BaseSkill):
     def __init__(self):
         self.executor = CommandExecutorService()
-        self.recovery_handler = DeveloperHandler()
 
     def can_handle(self, message: str) -> bool:
         return any(x in message.lower() for x in [
@@ -57,7 +56,7 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
                 missing_command = cmd.split()[0]
                 print(f"\n⚠️ Команда не найдена: {missing_command}")
                 install_prompt = f"Установи утилиту {missing_command} в системе Ubuntu"
-                install_result = await self.recovery_handler.handle(install_prompt, user_id)
+                install_result = await delegate_task("ExecuteWithLLMSkill", install_prompt, user_id)
                 results.append(f"🔄 Установка {missing_command}: {install_result}")
 
         return f"📋 Задача: {message}\n" + "\n".join(results)
