@@ -61,6 +61,13 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
                 install_result = await delegate_task("ExecuteWithLLMSkill", install_prompt, user_id)
                 results.append(f"🔄 Установка {missing_command}: {install_result}")
 
+            elif "No such file or directory" in output:
+               missing_file = cmd.split()[-1]
+               print(f"\n⚠️ Отсутствует файл: {missing_file}")
+               file_prompt = f"Найди или создай файл с именем {missing_file} для команды: `{cmd}`"
+               file_result = await delegate_task("ExecuteWithLLMSkill", file_prompt, user_id)
+               results.append(f"📄 Обработка отсутствующего файла {missing_file}: {file_result}")
+
             elif "syntax error" in output.lower():
                 print(f"\n⚠️ Ошибка синтаксиса в команде: {cmd}")
                 fix_prompt = f"""Команда: `{cmd}` вызывает синтаксическую ошибку.
