@@ -1,6 +1,7 @@
 from core.llm.llm_client import ask_gpt
 from core.handlers.routing import get_handler_by_competence
 from core.services.auto_handler_generator import create_new_handler
+from core.services.ai_trace_logger import log_trace
 
 async def resolve_task(user_id: str, message: str):
     # Определяем, сложная ли задача
@@ -11,6 +12,7 @@ async def resolve_task(user_id: str, message: str):
     )
     is_complex = await ask_gpt(complexity_prompt)
     if "да" in is_complex.lower():
+        log_trace(user_id, message, "complex", None, None)
         return "complex", None
 
     # Определяем компетенцию
@@ -21,6 +23,7 @@ async def resolve_task(user_id: str, message: str):
     competence = await ask_gpt(competence_prompt)
 
     if "неизвестно" in competence.lower():
+        log_trace(user_id, message, "clarify", "неизвестно", None)
         return "clarify", None
 
     handler = get_handler_by_competence(competence)
@@ -28,4 +31,6 @@ async def resolve_task(user_id: str, message: str):
         create_new_handler(competence)
         handler = get_handler_by_competence(competence)
 
+    handler_name = handler.__class__.__name__ if handler else "None"
+    log_trace(user_id, message, "normal", competence, handler_name)
     return "normal", handler
