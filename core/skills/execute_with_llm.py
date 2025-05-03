@@ -61,6 +61,20 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
                 install_result = await delegate_task("ExecuteWithLLMSkill", install_prompt, user_id)
                 results.append(f"🔄 Установка {missing_command}: {install_result}")
 
+            elif "syntax error" in output.lower():
+                print(f"\n⚠️ Ошибка синтаксиса в команде: {cmd}")
+                fix_prompt = f"""Команда: `{cmd}` вызывает синтаксическую ошибку.
+                Уточни и исправь её. Ответ — только исправленная команда без пояснений."""
+                fix_response = self.ask_llm(fix_prompt)
+                fixed_cmd = fix_response.get("text", "").strip()
+                if fixed_cmd:
+                    print(f"🔁 Пробуем исправленную команду: {fixed_cmd}")
+                    retry_result = self.executor.execute(fixed_cmd)
+                    status = "✅" if retry_result["status"] == "success" else "❌"
+                    results.append(f"{status} {fixed_cmd}\n{retry_result['output']}")
+                else:
+                    results.append("⚠️ LLM не смог уточнить команду.")
+
         return f"📋 Задача: {message}\n" + "\n".join(results)
 
     def ask_llm(self, prompt: str) -> dict:
