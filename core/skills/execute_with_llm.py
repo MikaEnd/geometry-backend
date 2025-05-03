@@ -7,7 +7,7 @@ import termios
 import fcntl
 from core.skills.base_skill import BaseSkill
 from core.services.command_executor import CommandExecutorService
-from core.mediator.agent_mediator import delegate_task  # ✅ делегируем через менеджера
+from core.mediator.agent_mediator import delegate_task  # делегируем в менеджера
 
 class ExecuteWithLLMSkill(BaseSkill):
     def __init__(self):
@@ -29,11 +29,13 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
         if "error" in response:
             return response["error"]
 
-        commands = [line.strip() for line in response["text"].split("\n") if line.strip()]
-        if not commands:
-            return "⚠️ LLM не сгенерировал ни одной команды."
+        raw_lines = response["text"].split("\n")
+        commands = self.filter_commands(raw_lines)
 
-        print("\n🧾 Запланированы следующие действия:")
+        if not commands:
+            return "⚠️ LLM не сгенерировал ни одной команды после фильтрации."
+
+        print("\n🧾 Отфильтрованные команды:")
         for c in commands:
             print(f"  ⏳ Будет выполнено: {c}")
 
@@ -81,6 +83,19 @@ echo -e "строка1\\nстрока2" > путь/имя.txt
             return {"text": data["choices"][0]["message"]["content"]}
         except Exception as e:
             return {"error": f"⚠️ Ошибка при обращении к LLM: {str(e)}"}
+
+    def filter_commands(self, lines) -> list:
+        filtered = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("```") or line.endswith("```"):
+                continue
+            if line.lower().startswith("bash"):
+                continue
+            filtered.append(line)
+        return filtered
 
     def wait_for_confirmation(self) -> bool:
         fd = sys.stdin.fileno()
