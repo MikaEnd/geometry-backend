@@ -3,6 +3,7 @@ from core.llm.llm_client import ask_gpt
 from core.skills.execute_with_llm import ExecuteWithLLMSkill
 from core.skills.multi_step_task import MultiStepTaskSkill
 from core.handlers.routing import get_handler_by_competence
+from core.services.auto_handler_generator import create_new_handler
 
 
 class ManagerHandler(BaseHandler):
@@ -18,7 +19,11 @@ class ManagerHandler(BaseHandler):
             if handler:
                 return await handler.handle(user_id, f"{task['original_task']}. Уточнение: {message}")
             else:
-                return f"Задача понята, но подходящей компетенции пока нет: {competence}"
+                create_new_handler(competence)
+                handler = get_handler_by_competence(competence)
+                if handler:
+                    return await handler.handle(user_id, f"{task['original_task']}. Уточнение: {message}")
+                return f"Создан обработчик для компетенции '{competence}', но запуск не удался."
 
         # Проверка сложности задачи
         is_complex = await ask_gpt(
@@ -33,7 +38,7 @@ class ManagerHandler(BaseHandler):
         # Иначе — обычная маршрутизация
         competence = await ask_gpt(
             f"На основе запроса определи компетенцию: {message}\n"
-            f"Ответь одним словом: разработчик, исследователь, менеджер или неизвестно."
+            f"Ответь одним словом: разработчик, исследователь, менеджер или документ. Если не знаешь — напиши неизвестно."
         )
 
         if "неизвестно" in competence.lower():
@@ -48,4 +53,8 @@ class ManagerHandler(BaseHandler):
         if handler:
             return await handler.handle(user_id, message)
         else:
-            return f"Компетенция определена: {competence}, но подходящий исполнитель пока не реализован."
+            create_new_handler(competence)
+            handler = get_handler_by_competence(competence)
+            if handler:
+                return await handler.handle(user_id, message)
+            return f"Создан обработчик для компетенции '{competence}', но запуск не удался."
