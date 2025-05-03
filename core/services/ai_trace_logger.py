@@ -1,9 +1,8 @@
 from pathlib import Path
 from datetime import datetime
 
-# Абсолютный путь к logs/AI_TRACE_LOG.md
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-LOG_PATH = BASE_DIR / "logs" / "AI_TRACE_LOG.md"
+# Относительно текущей рабочей директории (гарантированно /geometry-backend)
+LOG_PATH = Path.cwd() / "logs" / "AI_TRACE_LOG.md"
 
 def log_trace(user_id: str, message: str, mode: str, competence: str | None, handler: str | None):
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
