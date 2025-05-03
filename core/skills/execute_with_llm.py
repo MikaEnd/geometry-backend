@@ -7,7 +7,15 @@ import termios
 import fcntl
 from core.skills.interfaces import SkillInterface
 from core.services.command_executor import CommandExecutorService
+from core.skills.base_skill import BaseSkill
 
+
+class ExecuteWithLLMSkill(BaseSkill):
+    def can_handle(self, message: str) -> bool:
+        return any(x in message.lower() for x in ["установи", "удали", "обнови", "запусти", "создай", "bash", "терминал"])
+
+    async def execute(self, user_id: str, message: str) -> str:
+        ...
 
 class ExecuteWithLLMSkill(SkillInterface):
     def __init__(self):
