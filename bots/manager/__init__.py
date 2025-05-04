@@ -7,6 +7,9 @@ class ManagerHandler(BotHandler):
     def __init__(self):
         self.fallback = ExecuteWithLLMSkill()
 
+def can_handle(self, message: str) -> bool:
+    return True
+
     async def handle(self, message: str, user_id: str) -> str:
         routing = route_task(message)
 
