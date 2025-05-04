@@ -1,9 +1,9 @@
-from core.base_handler import BaseHandler
+from core.interfaces import BotHandler
 from core.routing.llm_router import route_task
 from core.skills.execute_with_llm import ExecuteWithLLMSkill
 from core.services.ai_trace_logger import log_trace
 
-class ManagerHandler(BaseHandler):
+class ManagerHandler(BotHandler):
     def __init__(self):
         self.fallback = ExecuteWithLLMSkill()
 
