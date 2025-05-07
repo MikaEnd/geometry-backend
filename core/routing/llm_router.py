@@ -31,7 +31,7 @@ def route_task(message: str) -> RoutingResult:
 
 Ответь одним словом — только название компетенции."""
 
-    llm_response = ask_llm(prompt)
+    llm_response = ask_llm(system_prompt=prompt, user_message=message)
     competence = llm_response.get("text", "").strip().lower()
 
     if competence in competence_map:

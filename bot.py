@@ -1,5 +1,5 @@
 import asyncio
-from core.manager import ManagerHandler
+from bots.manager import ManagerHandler
 
 def is_potential_command(text: str) -> bool:
     keywords = ["создай", "сохрани", "удали", "выполни", "сделай", "проверь", "напиши", "переведи", "перепиши"]
