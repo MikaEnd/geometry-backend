@@ -14,7 +14,12 @@ class ExecuteWithLLMSkill(Skill):
             "в корректную bash-команду. Без пояснений, без markdown. Только одна команда."
         )
         response = ask_llm(system_prompt=system_prompt, user_message=message)
+
         command = response.get("text", "").strip()
+        print(f"🔧 Сгенерировано LLM:\n{command}")
+
+        if not command:
+            return "⚠️ LLM не сгенерировал команду."
 
         sanitized = sanitize_command(command)
         if sanitized is None:
@@ -25,4 +30,11 @@ class ExecuteWithLLMSkill(Skill):
             return "❌ Выполнение отменено."
 
         result = execute_command(sanitized)
-        return f"📋 Задача: {message}\n✅ {sanitized}\n\n{result}"
+        if not result.strip():
+            return (
+                f"📋 Задача: {message}\n"
+                f"✅ {sanitized}\n"
+                f"⚠️ Команда выполнена, но ничего не вывела."
+            )
+
+        return f"📋 Задача: {message}\n✅ {sanitized}\n\n📤 Результат:\n{result}"
