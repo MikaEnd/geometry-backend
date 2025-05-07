@@ -13,6 +13,7 @@ class ExecuteWithLLMSkill(Skill):
             "Ты помощник в терминале Linux. Преобразуй запрос пользователя "
             "в корректную bash-команду. Без пояснений, без markdown. Только одна команда."
         )
+
         response = ask_llm(system_prompt=system_prompt, user_message=message)
 
         if "error" in response:
@@ -20,6 +21,17 @@ class ExecuteWithLLMSkill(Skill):
 
         command = response.get("text", "").strip()
         print(f"🔧 Сгенерировано LLM:\n{command}")
+
+        # 🧼 Если LLM сгенерировал многострочный ответ — запросить повторно
+        if "\n" in command:
+            retry_prompt = (
+                "Ты снова помощник в терминале Linux. Только одна строка. "
+                "Без объяснений. Только bash-команда. Без markdown, "
+                "без текста. Повтори задачу корректно."
+            )
+            retry = ask_llm(system_prompt=retry_prompt, user_message=message)
+            command = retry.get("text", "").strip()
+            print(f"🔁 Перегенерировано LLM:\n{command}")
 
         if not command:
             return "⚠️ LLM не сгенерировал команду."
