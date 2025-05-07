@@ -15,6 +15,9 @@ class ExecuteWithLLMSkill(Skill):
         )
         response = ask_llm(system_prompt=system_prompt, user_message=message)
 
+        if "error" in response:
+            return f"⚠️ Ошибка от LLM:\n{response['error']}"
+
         command = response.get("text", "").strip()
         print(f"🔧 Сгенерировано LLM:\n{command}")
 
