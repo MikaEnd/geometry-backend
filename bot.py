@@ -1,25 +1,31 @@
 import asyncio
-from core.interfaces import TaskRouter
-from bots.developer import DeveloperHandler
-from bots.lawyer import LawyerHandler
-from bots.web_researcher import WebResearcherHandler
-from bots.llm_assistant import LLMHandler
-from bots.manager import ManagerHandler  # ⬅️ только последним!
+from core.manager import ManagerHandler
+
+def is_potential_command(text: str) -> bool:
+    keywords = ["создай", "сохрани", "удали", "выполни", "сделай", "проверь", "напиши", "переведи", "перепиши"]
+    return any(text.lower().strip().startswith(k) for k in keywords)
 
 async def main():
-    router = TaskRouter()
-    router.add_handler(DeveloperHandler())
-    router.add_handler(LawyerHandler())
-    router.add_handler(WebResearcherHandler())
-    router.add_handler(LLMHandler())        # ⬅️ до менеджера!
-    router.add_handler(ManagerHandler())    # ⬅️ fallback — в самом конце
-
-    print("🤖 Bot Coordinator запущен.\n")
+    handler = ManagerHandler()
     while True:
-        task = input("💬 Введите задачу: ")
-        result = router.route(task)
-        if asyncio.iscoroutine(result):
-            result = await result
+        task = input("💬 Введите задачу: ").strip()
+        if not task:
+            continue
+
+        if not is_potential_command(task):
+            print("❓ Это:")
+            print("1 → задача для исполнения")
+            print("2 → просто вопрос (чат)")
+            choice = input("Выберите (1/2): ").strip()
+            if choice == "2":
+                print("🤖 Ответ от ассистента:")
+                print(handler.llm.ask_sync(task))
+                continue
+            elif choice != "1":
+                print("❌ Ввод отменён.\n")
+                continue
+
+        result = await handler.handle("user-001", task)
         print(f"📎 Результат: {result}\n")
 
 if __name__ == "__main__":
