@@ -1,3 +1,11 @@
+from core.interfaces import Skill
+from core.services.llm import ask_llm
+import re
+
+class WriteFileSkill(Skill):
+    def can_handle(self, message: str) -> bool:
+        return "сохрани" in message.lower() or "файл" in message.lower()
+
     async def execute(self, user_id: str, message: str) -> str:
         def parse_response(raw_text: str) -> tuple[str, str] | None:
             raw_text = re.sub(r"^```(?:[a-z]+)?\n?", "", raw_text.strip(), flags=re.IGNORECASE)
