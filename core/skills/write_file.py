@@ -15,6 +15,13 @@ class WriteFileSkill(Skill):
             filename, content = raw_text.split("\n", 1)
             return filename.strip(), content.strip()
 
+        def requires_retry(text: str) -> bool:
+            return (
+                "with open(" in text or
+                ".write(" in text or
+                text.strip().startswith("```")
+            )
+
         system_prompt = (
             "Ты файловый помощник. Получи от пользователя имя файла и его содержимое. "
             "Ответь строго в формате:\n<имя файла>\n<содержимое файла>. "
@@ -24,7 +31,7 @@ class WriteFileSkill(Skill):
         raw = ask_llm(system_prompt=system_prompt, user_message=message).get("text", "").strip()
         print(f"🔍 Ответ от LLM:\n{raw}")
 
-        if "with open(" in raw and ".write(" in raw:
+        if requires_retry(raw):
             retry_prompt = (
                 "Ответь строго в формате:\n<имя файла>\n<содержимое файла>.\n"
                 "Без пояснений, без markdown, без кода, без Python. Только имя файла и его содержимое."
