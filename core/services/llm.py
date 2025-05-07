@@ -1,7 +1,7 @@
 import os
 import requests
 
-def ask_llm(prompt: str) -> dict:
+def ask_llm(system_prompt: str, user_message: str) -> dict:
     api_key = os.getenv("DEEPSEEK_API_KEY")
     api_url = os.getenv("DEEPSEEK_URL")
 
@@ -12,9 +12,13 @@ def ask_llm(prompt: str) -> dict:
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}"
     }
+
     payload = {
         "model": "deepseek-chat",
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message}
+        ],
         "temperature": 0.2
     }
 
