@@ -3,6 +3,7 @@ from core.services.llm import ask_llm
 from core.utils.command_executor import execute_command
 from core.utils.user_prompt import confirm_or_cancel
 from core.utils.bash_sanitizer import sanitize_command
+import re
 
 class ExecuteWithLLMSkill(Skill):
     def can_handle(self, message: str) -> bool:
@@ -15,18 +16,16 @@ class ExecuteWithLLMSkill(Skill):
         )
 
         response = ask_llm(system_prompt=system_prompt, user_message=message)
-
         if "error" in response:
             return f"⚠️ Ошибка от LLM:\n{response['error']}"
 
         command = response.get("text", "").strip()
         print(f"🔧 Сгенерировано LLM:\n{command}")
 
-        # 🧼 Если LLM сгенерировал многострочный ответ — запросить повторно
         if "\n" in command:
             retry_prompt = (
                 "Ты снова помощник в терминале Linux. Только одна строка. "
-                "Без объяснений. Только bash-команда. Без markdown, "
+                "Без пояснений. Только bash-команда. Без markdown, "
                 "без текста. Повтори задачу корректно."
             )
             retry = ask_llm(system_prompt=retry_prompt, user_message=message)
@@ -35,6 +34,10 @@ class ExecuteWithLLMSkill(Skill):
 
         if not command:
             return "⚠️ LLM не сгенерировал команду."
+
+        # 🛡️ Блокируем очевидные текстовые ответы
+        if re.search(r"[а-яА-ЯЁё]", command) or command.lower().startswith(("это", "команда", "запрос", "возможно", "уточните")):
+            return f"⚠️ LLM вернул текст, а не команду:\n{command}"
 
         sanitized = sanitize_command(command)
         if sanitized is None:
