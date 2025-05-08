@@ -1,5 +1,4 @@
 from core.handlers.base_handler import BaseHandler
-from core.llm.llm_client import ask_gpt
 from core.skills.multi_step_task import MultiStepTaskSkill
 from core.router.llm_router import resolve_task
 

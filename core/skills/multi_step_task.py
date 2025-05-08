@@ -1,5 +1,5 @@
-from core.llm.llm_client import ask_gpt
-from core.handlers.routing import get_handler_by_competence
+from core.services.llm import ask_llm
+from core.routing.llm_router import get_handler_by_competence
 
 class MultiStepTaskSkill:
     def __init__(self):
@@ -15,7 +15,7 @@ class MultiStepTaskSkill:
             f"2. шаг два\n"
             f"..."
         )
-        response = await ask_gpt(prompt)
+        response = await ask_llm(system_prompt="Ты умеешь декомпозировать задачи на шаги.", user_message=prompt)
         steps = self._extract_steps(response)
 
         if not steps:
@@ -29,7 +29,7 @@ class MultiStepTaskSkill:
                 f"Определи, какой исполнитель лучше подойдёт для выполнения следующего шага:\n"
                 f"{step}\nОтветь одним словом: разработчик, исследователь, менеджер или неизвестно."
             )
-            competence = await ask_gpt(competence_prompt)
+            competence = await ask_llm(system_prompt="Ты классификатор задач по компетенциям.", user_message=competence_prompt)
             handler = get_handler_by_competence(competence)
 
             if handler:
