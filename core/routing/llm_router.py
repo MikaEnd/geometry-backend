@@ -37,5 +37,18 @@ def route_task(message: str) -> RoutingResult:
     if competence in competence_map:
         handler_class, name = competence_map[competence]
         return RoutingResult(competence, name, handler_class())
-    
+
     return RoutingResult(None, None, None)
+
+def get_handler_by_competence(competence: str):
+    handlers = {
+        "developer": DeveloperHandler,
+        "lawyer": LawyerHandler,
+        "document": DocumentHandler,
+        "web_researcher": WebResearcherHandler,
+    }
+
+    handler_class = handlers.get(competence.lower())
+    if handler_class:
+        return handler_class()
+    return None
