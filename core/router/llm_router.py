@@ -1,8 +1,15 @@
 # core/router/llm_router.py
 
-# 📝 Временно отключено: не существует core.llm.llm_client
-# from core.llm.llm_client import ask_gpt
+import asyncio
 
-def resolve_task(task: str) -> str:
-    # Пример заглушки
-    return f"[DEBUG] Task received: {task}"
+async def resolve_task(user_id: str, message: str):
+    print(f"[DEBUG] user_id={user_id}, message={message}")
+
+    # Имитация логики
+    if "папка" in message.lower():
+        class DummyHandler:
+            async def handle(self, user_id, message):
+                return f"Создание папки по запросу: {message}"
+        return "normal", DummyHandler()
+
+    return "clarify", None
