@@ -2,7 +2,7 @@
 
 from core.handlers.manager_handler import ManagerHandler
 from core.handlers.document_handler import DocumentHandler
-from core.services.llm import call_llm
+from core.services.llm import ask_llm
 
 def test_manager_handler_init():
     handler = ManagerHandler()
@@ -14,6 +14,6 @@ def test_document_handler_init():
 
 def test_call_llm_smoke():
     try:
-        call_llm("test prompt")  # зависит от реализации, возможно будет ошибка
+        ask_llm("system", "test prompt")  # зависит от реализации, возможно будет ошибка
     except Exception:
         pass  # допустимо на smoke-этапе
