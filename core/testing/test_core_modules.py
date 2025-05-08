@@ -1,19 +1,21 @@
 # core/testing/test_core_modules.py
 
+import unittest
 from core.handlers.manager_handler import ManagerHandler
 from core.handlers.document_handler import DocumentHandler
 from core.services.llm import ask_llm
 
-def test_manager_handler_init():
-    handler = ManagerHandler()
-    assert handler is not None
+class TestCoreModules(unittest.TestCase):
+    def test_manager_handler_init(self):
+        handler = ManagerHandler()
+        self.assertIsNotNone(handler)
 
-def test_document_handler_init():
-    handler = DocumentHandler()
-    assert handler is not None
+    def test_document_handler_init(self):
+        handler = DocumentHandler()
+        self.assertIsNotNone(handler)
 
-def test_call_llm_smoke():
-    try:
-        ask_llm("system", "test prompt")  # зависит от реализации, возможно будет ошибка
-    except Exception:
-        pass  # допустимо на smoke-этапе
+    def test_ask_llm_smoke(self):
+        try:
+            ask_llm("system", "test prompt")
+        except Exception:
+            pass  # допустимо
