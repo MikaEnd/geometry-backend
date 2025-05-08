@@ -1,32 +1,30 @@
 import asyncio
-from bots.manager import ManagerHandler
-
-def is_potential_command(text: str) -> bool:
-    keywords = ["создай", "сохрани", "удали", "выполни", "сделай", "проверь", "напиши", "переведи", "перепиши"]
-    return any(text.lower().strip().startswith(k) for k in keywords)
+from core.handlers.manager_handler import ManagerHandler
+from core.services.llm import ask_llm
 
 async def main():
     handler = ManagerHandler()
+
     while True:
         task = input("💬 Введите задачу: ").strip()
+
         if not task:
             continue
 
-        if not is_potential_command(task):
+        if "?" in task or task.lower().startswith(("что", "как", "почему", "зачем", "когда")):
             print("❓ Это:")
             print("1 → задача для исполнения")
             print("2 → просто вопрос (чат)")
             choice = input("Выберите (1/2): ").strip()
+
             if choice == "2":
                 print("🤖 Ответ от ассистента:")
-                print(handler.llm.ask_sync(task))
-                continue
-            elif choice != "1":
-                print("❌ Ввод отменён.\n")
+                response = ask_llm(system_prompt="Ты ассистент, кратко и точно отвечай на вопросы.", user_message=task)
+                print(response)
                 continue
 
-        result = await handler.handle("user-001", task)
-        print(f"📎 Результат: {result}\n")
+        result = await handler.handle(user_id="anonymous", message=task)
+        print("📎 Результат:", result)
 
 if __name__ == "__main__":
     asyncio.run(main())
