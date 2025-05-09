@@ -5,6 +5,7 @@ import asyncio
 from core.skills.base_skill import BaseSkill
 from core.utils.helpers import countdown_with_control
 from core.skills.self_heal_skill import SelfHealSkill
+from core.services.llm import ask_llm
 
 class ExecuteWithLLMSkill(BaseSkill):
     def can_handle(self, message: str) -> bool:
@@ -34,4 +35,9 @@ class ExecuteWithLLMSkill(BaseSkill):
             return f"⚠️ Непредвиденная ошибка: {str(e)}"
 
     def generate_command(self, task: str) -> str:
-        return f"echo '⚠️ Пока генерация отключена. Задача: {task}'"
+        system_prompt = (
+            "Ты помощник в терминале Linux. Преобразуй запрос пользователя "
+            "в одну валидную bash-команду. Без пояснений, без markdown. Только команда."
+        )
+        result = ask_llm(system_prompt, task)
+        return result.get("text", "").strip()

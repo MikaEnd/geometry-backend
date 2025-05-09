@@ -3,9 +3,12 @@ from core.handlers.developer_handler import DeveloperHandler
 from core.handlers.document_handler import DocumentHandler
 # from core.handlers.web_researcher_handler import WebResearcherHandler
 
+from core.handlers.исследователь_handler import ИсследовательHandler
 def get_handler_by_competence(competence: str):
     competence = competence.lower()
     if "разработчик" in competence:
+    elif "исследователь" in competence:
+        return ИсследовательHandler()
         return DeveloperHandler()
     elif "менеджер" in competence:
         return ManagerHandler()
