@@ -1,7 +1,6 @@
 # core/router/llm_router.py
 
 from core.services.llm import ask_llm
-from core.handlers.routing import get_handler_by_competence
 from core.services.auto_handler_generator import create_new_handler
 from core.services.ai_trace_logger import log_trace
 
@@ -30,6 +29,9 @@ async def resolve_task(user_id: str, message: str):
     if "неизвестно" in competence:
         log_trace(user_id, message, "clarify", "неизвестно", None)
         return "clarify", None
+
+    # 📦 Отложенный импорт
+    from core.handlers.routing import get_handler_by_competence
 
     handler = get_handler_by_competence(competence)
     if not handler:
