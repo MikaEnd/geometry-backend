@@ -28,14 +28,11 @@ class ManagerHandler(BaseHandler):
             return await MultiStepTaskSkill().execute(user_id, message)
 
         if mode == "clarify":
-            clarification = await ask_gpt(
-                f"Пользователь задал: '{message}'. Какие 1–2 вопроса нужно уточнить, чтобы выбрать исполнителя?"
-            )
             self.pending_tasks[user_id] = {
                 "original_task": message,
-                "clarification": clarification
+                "clarification": "❓ Уточни, пожалуйста, что ты имел в виду."
             }
-            return f"Чтобы понять задачу, уточни, пожалуйста:\n{clarification}"
+            return "❓ Уточни, пожалуйста, что ты имел в виду."
 
         if handler:
             return await handler.handle(user_id, message)
