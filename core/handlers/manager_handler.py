@@ -1,6 +1,9 @@
+# core/handlers/manager_handler.py
+
 from core.handlers.base_handler import BaseHandler
 from core.skills.multi_step_task import MultiStepTaskSkill
 from core.router.llm_router import resolve_task
+from core.skills.self_heal_skill import SelfHealSkill
 
 class ManagerHandler(BaseHandler):
     def __init__(self):
@@ -37,4 +40,6 @@ class ManagerHandler(BaseHandler):
         if handler:
             return await handler.handle(user_id, message)
 
-        return "⚠️ Не удалось обработать запрос. Возможно, ошибка компетенции."
+        # Попытка самодиагностики
+        suggestion = SelfHealSkill.run(message)
+        return f"⚠️ Не удалось обработать запрос.\n🤖 Вот что можно попробовать:\n{suggestion}"
