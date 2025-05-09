@@ -7,11 +7,12 @@ from core.utils.helpers import countdown_with_control
 from core.skills.self_heal_skill import SelfHealSkill
 
 class ExecuteWithLLMSkill(BaseSkill):
+    def can_handle(self, message: str) -> bool:
+        return True
+
     async def execute(self, user_id: str, task: str) -> str:
-        # Заглушка генерации команды от LLM
         bash_command = self.generate_command(task)
 
-        # Подтверждение
         print(f"🧾 Команда для выполнения: {bash_command}")
         await countdown_with_control()
 
@@ -33,5 +34,4 @@ class ExecuteWithLLMSkill(BaseSkill):
             return f"⚠️ Непредвиденная ошибка: {str(e)}"
 
     def generate_command(self, task: str) -> str:
-        # TODO: подключить LLM для генерации команд
         return f"echo '⚠️ Пока генерация отключена. Задача: {task}'"
